@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"path": "../../../../vscode_ide_mobile_plug"
+		}
+	],
+	"settings": {}
+}
