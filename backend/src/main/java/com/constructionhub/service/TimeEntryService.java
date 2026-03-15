@@ -19,9 +19,7 @@ public class TimeEntryService {
     private final WorkerRepository workerRepository;
 
     @Transactional(readOnly = true)
-    public List<TimeEntryResponse> getJobTimeEntries(Long jobId, Long organizationId) {
-        jobRepository.findByIdAndOrganizationId(jobId, organizationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Job", jobId));
+    public List<TimeEntryResponse> getJobTimeEntries(Long jobId) {
         return timeEntryRepository.findByJobIdOrderByEntryDateDesc(jobId).stream()
                 .map(this::mapToResponse)
                 .toList();
@@ -38,7 +36,7 @@ public class TimeEntryService {
     public TimeEntryResponse createTimeEntry(Long jobId, TimeEntryRequest request, User currentUser, Long organizationId) {
         Job job = jobRepository.findByIdAndOrganizationId(jobId, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Job", jobId));
-        Worker worker = workerRepository.findByIdAndOrganizationId(request.getWorkerId(), organizationId)
+        Worker worker = workerRepository.findById(request.getWorkerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Worker", request.getWorkerId()));
 
         TimeEntry entry = TimeEntry.builder()
@@ -57,8 +55,8 @@ public class TimeEntryService {
     }
 
     @Transactional
-    public TimeEntryResponse updateTimeEntry(Long entryId, TimeEntryRequest request, User currentUser, Long organizationId) {
-        TimeEntry entry = timeEntryRepository.findByIdAndOrganizationId(entryId, organizationId)
+    public TimeEntryResponse updateTimeEntry(Long entryId, TimeEntryRequest request, User currentUser) {
+        TimeEntry entry = timeEntryRepository.findById(entryId)
                 .orElseThrow(() -> new ResourceNotFoundException("TimeEntry", entryId));
 
         entry.setEntryDate(request.getEntryDate());
@@ -72,9 +70,10 @@ public class TimeEntryService {
     }
 
     @Transactional
-    public void deleteTimeEntry(Long entryId, Long organizationId) {
-        timeEntryRepository.findByIdAndOrganizationId(entryId, organizationId)
-                .orElseThrow(() -> new ResourceNotFoundException("TimeEntry", entryId));
+    public void deleteTimeEntry(Long entryId) {
+        if (!timeEntryRepository.existsById(entryId)) {
+            throw new ResourceNotFoundException("TimeEntry", entryId);
+        }
         timeEntryRepository.deleteById(entryId);
     }
 

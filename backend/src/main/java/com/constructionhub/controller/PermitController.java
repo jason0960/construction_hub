@@ -20,10 +20,8 @@ public class PermitController {
     private final PermitService permitService;
 
     @GetMapping
-    public ResponseEntity<List<PermitResponse>> getJobPermits(
-            @PathVariable Long jobId,
-            @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(permitService.getJobPermits(jobId, user.getOrganization().getId()));
+    public ResponseEntity<List<PermitResponse>> getJobPermits(@PathVariable Long jobId) {
+        return ResponseEntity.ok(permitService.getJobPermits(jobId));
     }
 
     @PostMapping
@@ -39,17 +37,14 @@ public class PermitController {
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN')")
     public ResponseEntity<PermitResponse> updatePermit(
             @PathVariable Long permitId,
-            @Valid @RequestBody PermitRequest request,
-            @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(permitService.updatePermit(permitId, request, user.getOrganization().getId()));
+            @Valid @RequestBody PermitRequest request) {
+        return ResponseEntity.ok(permitService.updatePermit(permitId, request));
     }
 
     @DeleteMapping("/{permitId}")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN')")
-    public ResponseEntity<Void> deletePermit(
-            @PathVariable Long permitId,
-            @AuthenticationPrincipal User user) {
-        permitService.deletePermit(permitId, user.getOrganization().getId());
+    public ResponseEntity<Void> deletePermit(@PathVariable Long permitId) {
+        permitService.deletePermit(permitId);
         return ResponseEntity.noContent().build();
     }
 }

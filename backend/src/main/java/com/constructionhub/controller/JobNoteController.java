@@ -24,7 +24,7 @@ public class JobNoteController {
             @PathVariable Long jobId,
             @AuthenticationPrincipal User user) {
         boolean includeOwnerOnly = user.getRole() != UserRole.WORKER;
-        return ResponseEntity.ok(jobNoteService.getJobNotes(jobId, includeOwnerOnly, user.getOrganization().getId()));
+        return ResponseEntity.ok(jobNoteService.getJobNotes(jobId, includeOwnerOnly));
     }
 
     @PostMapping

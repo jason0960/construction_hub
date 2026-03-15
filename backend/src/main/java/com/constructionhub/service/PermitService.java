@@ -18,9 +18,7 @@ public class PermitService {
     private final JobRepository jobRepository;
 
     @Transactional(readOnly = true)
-    public List<PermitResponse> getJobPermits(Long jobId, Long organizationId) {
-        jobRepository.findByIdAndOrganizationId(jobId, organizationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Job", jobId));
+    public List<PermitResponse> getJobPermits(Long jobId) {
         return permitRepository.findByJobIdOrderByExpirationDateAsc(jobId).stream()
                 .map(this::mapToResponse)
                 .toList();
@@ -50,8 +48,8 @@ public class PermitService {
     }
 
     @Transactional
-    public PermitResponse updatePermit(Long permitId, PermitRequest request, Long organizationId) {
-        Permit permit = permitRepository.findByIdAndOrganizationId(permitId, organizationId)
+    public PermitResponse updatePermit(Long permitId, PermitRequest request) {
+        Permit permit = permitRepository.findById(permitId)
                 .orElseThrow(() -> new ResourceNotFoundException("Permit", permitId));
 
         permit.setPermitType(request.getPermitType());
@@ -70,9 +68,10 @@ public class PermitService {
     }
 
     @Transactional
-    public void deletePermit(Long permitId, Long organizationId) {
-        permitRepository.findByIdAndOrganizationId(permitId, organizationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Permit", permitId));
+    public void deletePermit(Long permitId) {
+        if (!permitRepository.existsById(permitId)) {
+            throw new ResourceNotFoundException("Permit", permitId);
+        }
         permitRepository.deleteById(permitId);
     }
 

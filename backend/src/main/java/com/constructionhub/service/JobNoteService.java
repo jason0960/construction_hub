@@ -18,9 +18,7 @@ public class JobNoteService {
     private final JobRepository jobRepository;
 
     @Transactional(readOnly = true)
-    public List<JobNoteResponse> getJobNotes(Long jobId, boolean includeOwnerOnly, Long organizationId) {
-        jobRepository.findByIdAndOrganizationId(jobId, organizationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Job", jobId));
+    public List<JobNoteResponse> getJobNotes(Long jobId, boolean includeOwnerOnly) {
         List<JobNote> notes;
         if (includeOwnerOnly) {
             notes = jobNoteRepository.findByJobIdOrderByCreatedAtDesc(jobId);

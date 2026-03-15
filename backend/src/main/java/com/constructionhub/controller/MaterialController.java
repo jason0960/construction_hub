@@ -21,10 +21,8 @@ public class MaterialController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN')")
-    public ResponseEntity<List<MaterialResponse>> getJobMaterials(
-            @PathVariable Long jobId,
-            @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(materialService.getJobMaterials(jobId, user.getOrganization().getId()));
+    public ResponseEntity<List<MaterialResponse>> getJobMaterials(@PathVariable Long jobId) {
+        return ResponseEntity.ok(materialService.getJobMaterials(jobId));
     }
 
     @PostMapping
@@ -40,17 +38,14 @@ public class MaterialController {
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN')")
     public ResponseEntity<MaterialResponse> updateMaterial(
             @PathVariable Long materialId,
-            @Valid @RequestBody MaterialRequest request,
-            @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(materialService.updateMaterial(materialId, request, user.getOrganization().getId()));
+            @Valid @RequestBody MaterialRequest request) {
+        return ResponseEntity.ok(materialService.updateMaterial(materialId, request));
     }
 
     @DeleteMapping("/{materialId}")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN')")
-    public ResponseEntity<Void> deleteMaterial(
-            @PathVariable Long materialId,
-            @AuthenticationPrincipal User user) {
-        materialService.deleteMaterial(materialId, user.getOrganization().getId());
+    public ResponseEntity<Void> deleteMaterial(@PathVariable Long materialId) {
+        materialService.deleteMaterial(materialId);
         return ResponseEntity.noContent().build();
     }
 }

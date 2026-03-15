@@ -19,9 +19,7 @@ public class MaterialService {
     private final DocumentRepository documentRepository;
 
     @Transactional(readOnly = true)
-    public List<MaterialResponse> getJobMaterials(Long jobId, Long organizationId) {
-        jobRepository.findByIdAndOrganizationId(jobId, organizationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Job", jobId));
+    public List<MaterialResponse> getJobMaterials(Long jobId) {
         return materialRepository.findByJobIdOrderByCreatedAtDesc(jobId).stream()
                 .map(this::mapToResponse)
                 .toList();
@@ -51,8 +49,8 @@ public class MaterialService {
     }
 
     @Transactional
-    public MaterialResponse updateMaterial(Long materialId, MaterialRequest request, Long organizationId) {
-        Material material = materialRepository.findByIdAndOrganizationId(materialId, organizationId)
+    public MaterialResponse updateMaterial(Long materialId, MaterialRequest request) {
+        Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new ResourceNotFoundException("Material", materialId));
 
         material.setName(request.getName());
@@ -71,9 +69,10 @@ public class MaterialService {
     }
 
     @Transactional
-    public void deleteMaterial(Long materialId, Long organizationId) {
-        materialRepository.findByIdAndOrganizationId(materialId, organizationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Material", materialId));
+    public void deleteMaterial(Long materialId) {
+        if (!materialRepository.existsById(materialId)) {
+            throw new ResourceNotFoundException("Material", materialId);
+        }
         materialRepository.deleteById(materialId);
     }
 

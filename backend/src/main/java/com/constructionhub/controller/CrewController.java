@@ -19,10 +19,8 @@ public class CrewController {
     private final CrewService crewService;
 
     @GetMapping
-    public ResponseEntity<List<CrewAssignmentResponse>> getJobCrew(
-            @PathVariable Long jobId,
-            @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(crewService.getJobCrew(jobId, user.getOrganization().getId()));
+    public ResponseEntity<List<CrewAssignmentResponse>> getJobCrew(@PathVariable Long jobId) {
+        return ResponseEntity.ok(crewService.getJobCrew(jobId));
     }
 
     @PostMapping
@@ -38,17 +36,14 @@ public class CrewController {
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN')")
     public ResponseEntity<CrewAssignmentResponse> updateAssignment(
             @PathVariable Long assignmentId,
-            @RequestBody CrewAssignmentRequest request,
-            @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(crewService.updateAssignment(assignmentId, request, user.getOrganization().getId()));
+            @RequestBody CrewAssignmentRequest request) {
+        return ResponseEntity.ok(crewService.updateAssignment(assignmentId, request));
     }
 
     @DeleteMapping("/{assignmentId}")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN')")
-    public ResponseEntity<Void> removeWorker(
-            @PathVariable Long assignmentId,
-            @AuthenticationPrincipal User user) {
-        crewService.removeWorkerFromJob(assignmentId, user.getOrganization().getId());
+    public ResponseEntity<Void> removeWorker(@PathVariable Long assignmentId) {
+        crewService.removeWorkerFromJob(assignmentId);
         return ResponseEntity.noContent().build();
     }
 }

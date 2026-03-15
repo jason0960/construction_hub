@@ -2,7 +2,6 @@ package com.constructionhub.service;
 
 import com.constructionhub.dto.*;
 import com.constructionhub.entity.*;
-import com.constructionhub.exception.BusinessException;
 import com.constructionhub.exception.ResourceNotFoundException;
 import com.constructionhub.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +21,7 @@ public class CrewService {
     private final TimeEntryRepository timeEntryRepository;
 
     @Transactional(readOnly = true)
-    public List<CrewAssignmentResponse> getJobCrew(Long jobId, Long organizationId) {
-        jobRepository.findByIdAndOrganizationId(jobId, organizationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Job", jobId));
+    public List<CrewAssignmentResponse> getJobCrew(Long jobId) {
         List<CrewAssignment> assignments = crewAssignmentRepository.findByJobId(jobId);
         return assignments.stream().map(this::mapToResponse).toList();
     }
@@ -39,7 +36,7 @@ public class CrewService {
         // Check if already assigned
         crewAssignmentRepository.findByJobIdAndWorkerId(jobId, worker.getId())
                 .ifPresent(existing -> {
-                    throw new BusinessException("Worker is already assigned to this job");
+                    throw new RuntimeException("Worker is already assigned to this job");
                 });
 
         CrewAssignment assignment = CrewAssignment.builder()
@@ -56,8 +53,8 @@ public class CrewService {
     }
 
     @Transactional
-    public CrewAssignmentResponse updateAssignment(Long assignmentId, CrewAssignmentRequest request, Long organizationId) {
-        CrewAssignment assignment = crewAssignmentRepository.findByIdAndOrganizationId(assignmentId, organizationId)
+    public CrewAssignmentResponse updateAssignment(Long assignmentId, CrewAssignmentRequest request) {
+        CrewAssignment assignment = crewAssignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assignment", assignmentId));
 
         if (request.getRoleOnJob() != null) assignment.setRoleOnJob(request.getRoleOnJob());
@@ -69,8 +66,8 @@ public class CrewService {
     }
 
     @Transactional
-    public void removeWorkerFromJob(Long assignmentId, Long organizationId) {
-        CrewAssignment assignment = crewAssignmentRepository.findByIdAndOrganizationId(assignmentId, organizationId)
+    public void removeWorkerFromJob(Long assignmentId) {
+        CrewAssignment assignment = crewAssignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assignment", assignmentId));
         assignment.setStatus(AssignmentStatus.REMOVED);
         crewAssignmentRepository.save(assignment);

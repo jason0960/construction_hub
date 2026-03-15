@@ -19,10 +19,8 @@ public class TimeEntryController {
     private final TimeEntryService timeEntryService;
 
     @GetMapping
-    public ResponseEntity<List<TimeEntryResponse>> getJobTimeEntries(
-            @PathVariable Long jobId,
-            @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(timeEntryService.getJobTimeEntries(jobId, user.getOrganization().getId()));
+    public ResponseEntity<List<TimeEntryResponse>> getJobTimeEntries(@PathVariable Long jobId) {
+        return ResponseEntity.ok(timeEntryService.getJobTimeEntries(jobId));
     }
 
     @PostMapping
@@ -38,14 +36,12 @@ public class TimeEntryController {
             @PathVariable Long entryId,
             @Valid @RequestBody TimeEntryRequest request,
             @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(timeEntryService.updateTimeEntry(entryId, request, user, user.getOrganization().getId()));
+        return ResponseEntity.ok(timeEntryService.updateTimeEntry(entryId, request, user));
     }
 
     @DeleteMapping("/{entryId}")
-    public ResponseEntity<Void> deleteTimeEntry(
-            @PathVariable Long entryId,
-            @AuthenticationPrincipal User user) {
-        timeEntryService.deleteTimeEntry(entryId, user.getOrganization().getId());
+    public ResponseEntity<Void> deleteTimeEntry(@PathVariable Long entryId) {
+        timeEntryService.deleteTimeEntry(entryId);
         return ResponseEntity.noContent().build();
     }
 }

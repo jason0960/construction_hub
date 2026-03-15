@@ -2,10 +2,8 @@ package com.constructionhub.service;
 
 import com.constructionhub.dto.auth.*;
 import com.constructionhub.entity.*;
-import com.constructionhub.exception.BusinessException;
 import com.constructionhub.repository.*;
 import com.constructionhub.security.JwtService;
-import com.constructionhub.security.LoginAttemptService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,12 +22,11 @@ public class AuthService {
     private final WorkerRepository workerRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
-    private final LoginAttemptService loginAttemptService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException("Email already registered");
+            throw new RuntimeException("Email already registered");
         }
 
         // Create organization
@@ -56,37 +53,28 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        if (loginAttemptService.isBlocked(request.getEmail())) {
-            throw new BusinessException("Too many failed attempts. Please try again later.");
-        }
-
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> {
-                    loginAttemptService.recordFailure(request.getEmail());
-                    return new BusinessException("Invalid email or password");
-                });
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            loginAttemptService.recordFailure(request.getEmail());
-            throw new BusinessException("Invalid email or password");
+            throw new RuntimeException("Invalid email or password");
         }
 
         if (!user.getActive()) {
-            throw new BusinessException("Account is deactivated");
+            throw new RuntimeException("Account is deactivated");
         }
 
-        loginAttemptService.recordSuccess(request.getEmail());
         return generateAuthResponse(user);
     }
 
     @Transactional
     public AuthResponse refreshToken(RefreshRequest request) {
         RefreshToken storedToken = refreshTokenRepository.findByToken(request.getRefreshToken())
-                .orElseThrow(() -> new BusinessException("Invalid refresh token"));
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
         if (storedToken.isExpired()) {
             refreshTokenRepository.delete(storedToken);
-            throw new BusinessException("Refresh token expired");
+            throw new RuntimeException("Refresh token expired");
         }
 
         User user = storedToken.getUser();
@@ -100,7 +88,7 @@ public class AuthService {
     @Transactional
     public AuthResponse inviteWorker(InviteWorkerRequest request, User currentUser) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException("Email already registered");
+            throw new RuntimeException("Email already registered");
         }
 
         // Create worker user account

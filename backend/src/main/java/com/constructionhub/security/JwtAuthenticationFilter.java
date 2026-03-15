@@ -1,8 +1,7 @@
 package com.constructionhub.security;
 
 import com.constructionhub.entity.User;
-import com.constructionhub.service.UserCacheService;
-import io.jsonwebtoken.Claims;
+import com.constructionhub.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +23,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserCacheService userCacheService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -34,15 +33,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = extractTokenFromHeader(request);
 
         if (StringUtils.hasText(token) && jwtService.isTokenValid(token)) {
-            // Parse token ONCE — extract all claims in a single pass
-            Claims claims = jwtService.parseToken(token);
-            Long userId = Long.parseLong(claims.getSubject());
+            Long userId = jwtService.getUserIdFromToken(token);
+            String role = jwtService.getRoleFromToken(token);
 
-            User user = userCacheService.findById(userId).orElse(null);
+            User user = userRepository.findById(userId).orElse(null);
 
             if (user != null && user.getActive()) {
-                // Use the DB role (authoritative) instead of the JWT role
-                var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+                var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
 
                 var authentication = new UsernamePasswordAuthenticationToken(
                         user, null, authorities);
